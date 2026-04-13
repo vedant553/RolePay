@@ -1,0 +1,156 @@
+export interface Employee {
+  id: string;
+  name: string;
+  country: string;
+  countryCode: string;
+  salaryTemplate: string;
+  grossSalary: string;
+  variablePercent: number;
+  complianceStatus: "Compliant" | "Review Needed" | "Pending";
+  riskScore: number;
+  lastPayrollMonth: string;
+  overrides: number;
+  status: "Active" | "On Leave" | "Inactive";
+  department: string;
+  email: string;
+}
+
+export const employees: Employee[] = [
+  {
+    id: "EMP-2401",
+    name: "Sarah Johnson",
+    country: "USA",
+    countryCode: "🇺🇸",
+    salaryTemplate: "Executive L3",
+    grossSalary: "$145,000",
+    variablePercent: 25,
+    complianceStatus: "Compliant",
+    riskScore: 15,
+    lastPayrollMonth: "Feb 2026",
+    overrides: 2,
+    status: "Active",
+    department: "Engineering",
+    email: "sarah.johnson@saasa.io",
+  },
+  {
+    id: "EMP-2402",
+    name: "Marcus Chen",
+    country: "Singapore",
+    countryCode: "🇸🇬",
+    salaryTemplate: "Senior L2",
+    grossSalary: "$92,000",
+    variablePercent: 18,
+    complianceStatus: "Compliant",
+    riskScore: 8,
+    lastPayrollMonth: "Feb 2026",
+    overrides: 0,
+    status: "Active",
+    department: "Finance",
+    email: "marcus.chen@saasa.io",
+  },
+  {
+    id: "EMP-2403",
+    name: "Elena Rodriguez",
+    country: "Spain",
+    countryCode: "🇪🇸",
+    salaryTemplate: "Mid-Level L1",
+    grossSalary: "€58,000",
+    variablePercent: 12,
+    complianceStatus: "Review Needed",
+    riskScore: 42,
+    lastPayrollMonth: "Feb 2026",
+    overrides: 3,
+    status: "Active",
+    department: "HR",
+    email: "elena.rodriguez@saasa.io",
+  },
+  {
+    id: "EMP-2404",
+    name: "James Mitchell",
+    country: "UK",
+    countryCode: "🇬🇧",
+    salaryTemplate: "Executive L3",
+    grossSalary: "£118,000",
+    variablePercent: 22,
+    complianceStatus: "Compliant",
+    riskScore: 12,
+    lastPayrollMonth: "Feb 2026",
+    overrides: 1,
+    status: "Active",
+    department: "Legal",
+    email: "james.mitchell@saasa.io",
+  },
+  {
+    id: "EMP-2405",
+    name: "Priya Sharma",
+    country: "India",
+    countryCode: "🇮🇳",
+    salaryTemplate: "Senior L2",
+    grossSalary: "₹4,800,000",
+    variablePercent: 15,
+    complianceStatus: "Compliant",
+    riskScore: 6,
+    lastPayrollMonth: "Feb 2026",
+    overrides: 0,
+    status: "Active",
+    department: "Engineering",
+    email: "priya.sharma@saasa.io",
+  },
+  {
+    id: "EMP-2406",
+    name: "Thomas Weber",
+    country: "Germany",
+    countryCode: "🇩🇪",
+    salaryTemplate: "Mid-Level L1",
+    grossSalary: "€72,000",
+    variablePercent: 10,
+    complianceStatus: "Pending",
+    riskScore: 68,
+    lastPayrollMonth: "Jan 2026",
+    overrides: 5,
+    status: "On Leave",
+    department: "Operations",
+    email: "thomas.weber@saasa.io",
+  },
+  {
+    id: "EMP-2407",
+    name: "Yuki Tanaka",
+    country: "Japan",
+    countryCode: "🇯🇵",
+    salaryTemplate: "Senior L2",
+    grossSalary: "¥12,500,000",
+    variablePercent: 20,
+    complianceStatus: "Compliant",
+    riskScore: 10,
+    lastPayrollMonth: "Feb 2026",
+    overrides: 1,
+    status: "Active",
+    department: "Product",
+    email: "yuki.tanaka@saasa.io",
+  },
+  {
+    id: "EMP-2408",
+    name: "Olivia Thompson",
+    country: "Canada",
+    countryCode: "🇨🇦",
+    salaryTemplate: "Executive L3",
+    grossSalary: "C$135,000",
+    variablePercent: 28,
+    complianceStatus: "Compliant",
+    riskScore: 14,
+    lastPayrollMonth: "Feb 2026",
+    overrides: 2,
+    status: "Active",
+    department: "Finance",
+    email: "olivia.thompson@saasa.io",
+  },
+];
+
+export const employeeStats = {
+  total: 248,
+  active: 234,
+  onLeave: 14,
+  totalPayroll: "$565,240",
+  avgRiskScore: 22,
+  compliantCount: 231,
+};
