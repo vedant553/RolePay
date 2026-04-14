@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Users,
@@ -85,9 +86,9 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 bottom-0 w-[250px] bg-[#0f1729] z-50 flex flex-col overflow-hidden">
       {/* Logo Area */}
       <div className="h-16 flex items-center pl-6 border-b border-white/5 shrink-0">
-        <div className="h-[35px] w-[142px] bg-gradient-to-br from-[#10b981] to-[#059669] rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-lg tracking-wide">SAASA</span>
-        </div>
+        <Link href="/">
+          <Image src="/hryantra_logo_bg.png" alt="HR Yantra Logo" width={142} height={35} className="h-[35px] w-auto object-contain" priority />
+        </Link>
       </div>
 
       {/* Nav */}
