@@ -1,133 +1,127 @@
 "use client";
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { Download, ChevronRight, TrendingUp, FileText } from "lucide-react";
+import { Download, ChevronRight, Lock, LayoutDashboard, FileText, ShieldCheck, CheckCircle2, Server, FolderSync } from "lucide-react";
 import Link from "next/link";
+import { usePayroll } from "@/lib/context/PayrollContext";
 
-const COLORS = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b"];
+export default function PayrollReportingPage() {
+  const { status, metrics, resolvedEntities, auditLogs, activeScenarioId, scenarios } = usePayroll();
+  const isLocked = status === "locked";
+  const scenario = scenarios.find(s=>s.id===activeScenarioId);
 
-const monthlyData = [
-  { month: "Oct", gross: 540, net: 455, tax: 85 },
-  { month: "Nov", gross: 520, net: 438, tax: 82 },
-  { month: "Dec", gross: 580, net: 489, tax: 91 },
-  { month: "Jan", gross: 550, net: 463, tax: 87 },
-  { month: "Feb", gross: 560, net: 472, tax: 88 },
-  { month: "Mar", gross: 565, net: 480, tax: 85 },
-];
-
-const entityBreakdown = [
-  { name: "USA", value: 38.6 },
-  { name: "India", value: 15.8 },
-  { name: "Germany", value: 28.1 },
-  { name: "Singapore", value: 17.5 },
-];
-
-const reports = [
-  { name: "Payroll Summary Report – March 2026", type: "PDF", size: "2.4 MB", date: "Apr 1, 2026" },
-  { name: "Tax Withholding Report Q1 2026", type: "XLSX", size: "1.1 MB", date: "Apr 1, 2026" },
-  { name: "Entity-wise Payroll Breakdown", type: "CSV", size: "840 KB", date: "Apr 1, 2026" },
-  { name: "Compliance Audit Trail", type: "PDF", size: "3.2 MB", date: "Apr 1, 2026" },
-  { name: "Year-to-Date Payroll Analysis", type: "XLSX", size: "1.8 MB", date: "Apr 1, 2026" },
-];
-
-export default function ReportingPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-[12px] text-[#90a1b9] mb-4">
-        <Link href="/payroll-run" className="hover:text-[#10b981]">Payroll Run</Link>
-        <ChevronRight className="size-3" strokeWidth={2} />
-        <span className="text-[#0f172b] font-bold">Reporting</span>
-      </div>
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="text-[24px] font-bold text-[#0f172b] mb-2">Payroll Reporting Dashboard</h1>
-          <p className="text-[#62748e] text-[14px]">Analytics, downloads, and audit reports across all entities</p>
-        </div>
-        <button className="flex items-center gap-2 bg-[#10b981] hover:bg-[#059669] text-white font-bold text-[14px] px-5 py-2.5 rounded-xl shadow-sm transition-colors">
-          <Download className="size-4" strokeWidth={2} /> Export All Reports
-        </button>
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Total Gross YTD", value: "$1.62M", sub: "+8.2% vs prior year", icon: TrendingUp, color: "bg-[#10b981]" },
-          { label: "Reports Generated", value: "48", sub: "This quarter", icon: FileText, color: "bg-[#3b82f6]" },
-          { label: "Compliance Reports", value: "12", sub: "All filed", icon: FileText, color: "bg-[#8b5cf6]" },
-          { label: "Data Accuracy", value: "99.8%", sub: "AI-validated", icon: TrendingUp, color: "bg-[#f59e0b]" },
-        ].map((card, i) => (
-          <div key={i} className="bg-white border border-[rgba(226,232,240,0.6)] rounded-2xl p-5 shadow-sm">
-            <div className={`${card.color} rounded-xl size-9 flex items-center justify-center mb-3`}>
-              <card.icon className="size-4 text-white" strokeWidth={1.75} />
+    <div className="pb-20 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      
+      {isLocked ? (
+         <div className="bg-[#0f172b] p-8 rounded-2xl shadow-xl flex items-center justify-between border border-slate-700 mb-8 relative overflow-hidden">
+            <div className="absolute -right-10 -top-10 opacity-10">
+               <Lock className="size-48" />
             </div>
-            <p className="text-[10px] font-bold text-[#62748e] uppercase tracking-wider mb-1">{card.label}</p>
-            <p className="text-[24px] font-bold text-[#0f172b] mb-0.5">{card.value}</p>
-            <p className="text-[11px] text-[#90a1b9]">{card.sub}</p>
-          </div>
-        ))}
-      </div>
+            <div className="relative z-10">
+               <h2 className="text-[20px] font-bold text-emerald-400 tracking-tight flex items-center gap-3 mb-2">
+                  <CheckCircle2 className="size-6" /> Immutable Output Validated & Sealed
+               </h2>
+               <p className="text-slate-300 text-[14px] max-w-2xl leading-relaxed">
+                  The computational matrix for <strong>{scenario?.name}</strong> has been secured and pushed out to external gateways securely. Traceable variables are frozen to maintain 100% SEC audit compliance logic passively reporting hashes.
+               </p>
+               <div className="flex gap-4 mt-5">
+                  <span className="bg-slate-800 text-slate-300 font-mono text-[11px] px-3 py-1 rounded">TIMESTAMP: {new Date().toUTCString()}</span>
+                  <span className="bg-slate-800 text-slate-300 font-mono text-[11px] px-3 py-1 rounded">MATRIX SHA-256 HASH VERIFIED</span>
+               </div>
+            </div>
+         </div>
+      ) : (
+         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-8 flex items-start gap-4 shadow-sm">
+            <Lock className="size-6 text-amber-500 shrink-0" />
+            <div>
+               <p className="text-[14px] font-bold text-amber-800 mb-1">State Logic Open</p>
+               <p className="text-[13px] text-amber-700">These reports represent current draft-computation mathematics and are technically mutable until the sequence is securely locked by an active Finance Controller globally.</p>
+            </div>
+         </div>
+      )}
 
-      {/* Charts */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        <div className="bg-white border border-[#e2e8f0] rounded-2xl p-6 shadow-sm">
-          <h3 className="font-bold text-[#0f172b] text-[16px] mb-5">6-Month Payroll Trends</h3>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#90a1b9" }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} formatter={(v) => [`$${v}K`, ""]} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="gross" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="Gross" />
-                <Bar dataKey="net" fill="#10b981" radius={[4, 4, 0, 0]} name="Net" />
-                <Bar dataKey="tax" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Tax" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="bg-white border border-[#e2e8f0] rounded-2xl p-6 shadow-sm">
-          <h3 className="font-bold text-[#0f172b] text-[16px] mb-5">Entity Payroll Distribution</h3>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={entityBreakdown} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name} ${value}%`} labelLine={false}>
-                  {entityBreakdown.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Legend />
-                <Tooltip formatter={(v) => [`${v}%`, ""]} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Reports List */}
-      <div className="bg-white border border-[#e2e8f0] rounded-2xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-[#e2e8f0]">
-          <h2 className="font-bold text-[#0f172b] text-[16px]">Available Reports</h2>
-        </div>
-        <div className="divide-y divide-[#e2e8f0]">
-          {reports.map((report) => (
-            <div key={report.name} className="flex items-center justify-between px-6 py-4 hover:bg-[#f8fafc] transition-colors">
-              <div className="flex items-center gap-4">
-                <div className={`size-9 rounded-lg flex items-center justify-center font-bold text-[11px] text-white ${report.type === "PDF" ? "bg-[#ef4444]" : report.type === "XLSX" ? "bg-[#10b981]" : "bg-[#3b82f6]"}`}>
-                  {report.type}
-                </div>
-                <div>
-                  <p className="font-bold text-[14px] text-[#0f172b]">{report.name}</p>
-                  <p className="text-[12px] text-[#90a1b9]">{report.size} · Generated {report.date}</p>
-                </div>
+      <div className="bg-white border border-[#e2e8f0] rounded-2xl p-8 shadow-sm mb-8">
+        <h2 className="text-[18px] font-bold text-[#0f172b] mb-6 flex items-center gap-2"><ShieldCheck className="text-[#3b82f6] size-5" /> Executive Cryptographic Audit Outputs</h2>
+        <div className="grid grid-cols-2 gap-6">
+           <div className="border border-[#e2e8f0] rounded-xl p-5 hover:border-[#3b82f6] transition-colors group">
+              <div className="flex items-center justify-between mb-4">
+                 <div className="flex items-center gap-3">
+                    <div className="bg-blue-50 text-blue-600 p-2.5 rounded-lg group-hover:scale-105 transition-transform"><FileText className="size-5" /></div>
+                    <p className="font-bold text-[15px] text-[#0f172b]">Executive Payroll Index Summary</p>
+                 </div>
+                 <button className="text-[#3b82f6] hover:bg-blue-50 p-2 rounded-full transition-colors"><Download className="size-5" /></button>
               </div>
-              <button className="flex items-center gap-2 text-[#10b981] font-bold text-[13px] hover:opacity-80">
-                <Download className="size-4" strokeWidth={2} /> Download
-              </button>
-            </div>
-          ))}
+              <p className="text-[13px] text-[#64748b] leading-relaxed">Aggregated high-level gross, net, and tax float models normalized across global target matrices for external CFO parsing.</p>
+              <div className="mt-4 flex gap-2">
+                 <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase px-2 py-1 rounded">PDF FORMATTING</span>
+                 <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase px-2 py-1 rounded">SIGNED ORIGIN</span>
+              </div>
+           </div>
+           
+           <div className="border border-[#e2e8f0] rounded-xl p-5 hover:border-[#8b5cf6] transition-colors group">
+              <div className="flex items-center justify-between mb-4">
+                 <div className="flex items-center gap-3">
+                    <div className="bg-purple-50 text-purple-600 p-2.5 rounded-lg group-hover:scale-105 transition-transform"><Server className="size-5" /></div>
+                    <p className="font-bold text-[15px] text-[#0f172b]">Immutable Threat Vector Audit Log</p>
+                 </div>
+                 <button className="text-[#8b5cf6] hover:bg-purple-50 p-2 rounded-full transition-colors"><Download className="size-5" /></button>
+              </div>
+              <p className="text-[13px] text-[#64748b] leading-relaxed">Extracted JSON log map of {auditLogs.length} action events capturing overrides, sequence bypasses, and multi-team approvals.</p>
+              <div className="mt-4 flex gap-2">
+                 <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase px-2 py-1 rounded">JSON LOGS</span>
+                 <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase px-2 py-1 rounded">CRYPTOGRAPHIC SEAL</span>
+              </div>
+           </div>
+
+           <div className="border border-[#e2e8f0] rounded-xl p-5 hover:border-[#10b981] transition-colors group">
+              <div className="flex items-center justify-between mb-4">
+                 <div className="flex items-center gap-3">
+                    <div className="bg-emerald-50 text-emerald-600 p-2.5 rounded-lg group-hover:scale-105 transition-transform"><FolderSync className="size-5" /></div>
+                    <p className="font-bold text-[15px] text-[#0f172b]">Rule-Based Tax Matrix Map</p>
+                 </div>
+                 <button className="text-[#10b981] hover:bg-emerald-50 p-2 rounded-full transition-colors"><Download className="size-5" /></button>
+              </div>
+              <p className="text-[13px] text-[#64748b] leading-relaxed">Compiled structural breakdowns of exactly mapped tax algorithms isolating IRS Federal logic vs EU VAT logic vs India TDS securely.</p>
+              <div className="mt-4 flex gap-2">
+                 <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase px-2 py-1 rounded">CSV ARRAY</span>
+                 <span className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase px-2 py-1 rounded">COMPLIANCE SECURED</span>
+              </div>
+           </div>
         </div>
       </div>
+
+      <div className="bg-white border border-[#e2e8f0] rounded-2xl p-8 shadow-sm">
+         <h2 className="text-[16px] font-bold text-[#0f172b] mb-4 border-b border-[#e2e8f0] pb-4">Internal Global Accounting Metrics Validation</h2>
+         <div className="space-y-4">
+            <div className="flex justify-between text-[14px]">
+               <span className="text-[#64748b] font-medium">Aggregated Mathematical Gross Array Limit:</span>
+               <span className="font-bold text-[#0f172b] font-mono">${metrics.totalGross.toLocaleString("en-US")}</span>
+            </div>
+            <div className="flex justify-between text-[14px]">
+               <span className="text-[#64748b] font-medium">Aggregated Tax Traceability Value:</span>
+               <span className="font-bold text-red-600 font-mono">-${metrics.totalTax.toLocaleString("en-US")}</span>
+            </div>
+            <div className="flex justify-between text-[14px]">
+               <span className="text-[#64748b] font-medium">Aggregated Deduction Parameter Trace:</span>
+               <span className="font-bold text-red-600 font-mono">-${metrics.totalBenefits.toLocaleString("en-US")}</span>
+            </div>
+            <div className="flex justify-between text-[16px] bg-[#f8fafc] p-4 rounded-xl border border-[#e2e8f0] mt-4">
+               <span className="text-[#0f172b] font-bold uppercase tracking-wider">Final Disbursement Matrix Bound</span>
+               <span className="font-bold text-[#10b981] font-mono tracking-tight">${metrics.totalNet.toLocaleString("en-US")}</span>
+            </div>
+         </div>
+         {resolvedEntities.length > 0 && (
+            <div className="mt-6 pt-4 border-t border-[#e2e8f0] text-[13px] text-[#64748b]">
+               <span className="font-bold text-amber-600">Manual Variance Warning:</span> The ledger natively resolves float mismatches for {resolvedEntities.length} targets artificially.
+            </div>
+         )}
+      </div>
+
+      <Link href="/payroll-run">
+        <button className="mt-8 text-[#64748b] font-bold text-[13px] hover:text-[#0f172b] transition-colors flex items-center gap-1">
+           <ChevronRight className="rotate-180 size-4" /> Return to Decision Dashboard Frame
+        </button>
+      </Link>
     </div>
   );
 }

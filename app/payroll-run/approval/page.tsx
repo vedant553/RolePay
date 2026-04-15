@@ -1,126 +1,126 @@
 "use client";
 
-import { CheckCircle, Clock, AlertCircle, ChevronRight } from "lucide-react";
-import { approvalWorkflow } from "@/lib/data/payroll";
+import { CheckCircle, Clock, AlertCircle, ChevronRight, Lock, Users, Shield, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { usePayroll } from "@/lib/context/PayrollContext";
+import { useState } from "react";
 
-function ApproverCard({ approver }: { approver: typeof approvalWorkflow[0] }) {
-  const statusConfig = {
-    approved: { icon: CheckCircle, color: "text-[#10b981]", bg: "bg-[#d1fae5]", label: "Approved" },
-    pending: { icon: Clock, color: "text-[#f59e0b]", bg: "bg-[#fef3c7]", label: "Pending" },
-    rejected: { icon: AlertCircle, color: "text-[#ef4444]", bg: "bg-[#fee2e2]", label: "Rejected" },
-  }[approver.status];
+export default function PayrollApprovalPage() {
+  const { status, approvers, approveStep, bulkApprove, bulkReject, proceedToDisbursement, currentStep, employees, targetRole, checkGovernanceRules } = usePayroll();
+  const [showOverrideWarning, setShowOverrideWarning] = useState(false);
 
-  const StatusIcon = statusConfig.icon;
-  return (
-    <div className={`flex items-center gap-4 p-5 rounded-xl border-2 ${approver.status === "approved" ? "border-[#10b981]/30 bg-[#ecfdf5]/30" : "border-[#e2e8f0] bg-white"}`}>
-      <div className={`${statusConfig.bg} rounded-full p-2.5`}>
-        <StatusIcon className={`size-5 ${statusConfig.color}`} strokeWidth={2} />
-      </div>
-      <div className="flex-1">
-        <p className="font-bold text-[#0f172b] text-[15px]">{approver.name}</p>
-        <p className="text-[#62748e] text-[13px]">{approver.role}</p>
-        {approver.timestamp && <p className="text-[#90a1b9] text-[11px] mt-0.5">{approver.timestamp}</p>}
-      </div>
-      <span className={`${statusConfig.bg} ${statusConfig.color} text-[12px] font-bold px-3 py-1 rounded-lg`}>
-        {statusConfig.label}
-      </span>
-    </div>
-  );
-}
+  const allApproved = approvers.every(a => a.status === "approved");
+  const anyRejected = approvers.some(a => a.status === "rejected");
+  const isLocked = status === "locked" || status === "disbursement" || status === "reconciliation";
 
-export default function ApprovalPage() {
-  const approvedCount = approvalWorkflow.filter((a) => a.status === "approved").length;
-  const totalCount = approvalWorkflow.length;
+  const overriddenCount = employees.filter(e => e.baseOverride !== undefined || e.isExcluded || e.overtimeHours > 0).length;
+  const governance = checkGovernanceRules();
 
   return (
-    <div>
-      <div className="flex items-center gap-2 text-[12px] text-[#90a1b9] mb-4">
-        <Link href="/payroll-run" className="hover:text-[#10b981]">Payroll Run</Link>
-        <ChevronRight className="size-3" strokeWidth={2} />
-        <span className="text-[#0f172b] font-bold">Approval</span>
-      </div>
-
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="text-[24px] font-bold text-[#0f172b] mb-2">Payroll Approval – March 2026</h1>
-          <p className="text-[14px] text-[#62748e]">Multi-level authorization workflow for payroll disbursement</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-[#fef3c7] rounded-xl px-4 py-2">
-            <p className="font-bold text-[#92400e] text-[14px]">{totalCount - approvedCount} Pending</p>
-          </div>
-          <button className="bg-[#10b981] hover:bg-[#059669] text-white font-bold text-[14px] px-6 py-2.5 rounded-xl transition-colors shadow-sm">
-            Approve & Proceed
-          </button>
-        </div>
-      </div>
-
-      {/* Progress */}
-      <div className="bg-white border border-[#e2e8f0] rounded-2xl p-6 mb-6 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-[#0f172b] text-[16px]">Approval Progress</h2>
-          <span className="text-[14px] font-bold text-[#10b981]">{approvedCount}/{totalCount} Approved</span>
-        </div>
-        <div className="w-full h-3 bg-[#f0f0f0] rounded-full overflow-hidden mb-2">
-          <div className="h-full bg-gradient-to-r from-[#10b981] to-[#059669] rounded-full transition-all" style={{ width: `${(approvedCount / totalCount) * 100}%` }} />
-        </div>
-        <p className="text-[12px] text-[#90a1b9]">{Math.round((approvedCount / totalCount) * 100)}% complete — awaiting {totalCount - approvedCount} more approvals</p>
-      </div>
-
-      {/* Payroll Summary Card */}
-      <div className="bg-gradient-to-br from-[#0f172b] to-[#1e293b] text-white rounded-2xl p-6 mb-6 shadow-lg">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <p className="text-white/50 text-[12px] uppercase tracking-wider mb-1">Payroll Summary for Approval</p>
-            <p className="text-[32px] font-bold tracking-tight">$565,240.00</p>
-            <p className="text-[#10b981] text-[13px] font-bold mt-1">▲ 12.5% vs February 2026</p>
-          </div>
-          <div className="bg-white/10 rounded-xl p-3">
-            <p className="text-[11px] text-white/60 uppercase tracking-wider mb-1">March 2026</p>
-            <p className="text-white font-bold text-[13px]">1,248 employees</p>
-            <p className="text-white/50 text-[11px]">4 entities</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: "Gross Payroll", value: "$565,240" },
-            { label: "Tax Withholdings", value: "$84,786" },
-            { label: "Net Disbursement", value: "$480,454" },
-          ].map((item) => (
-            <div key={item.label} className="bg-white/5 rounded-xl p-4">
-              <p className="text-white/50 text-[11px] mb-1">{item.label}</p>
-              <p className="font-bold text-[16px]">{item.value}</p>
+    <div className="pb-20 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      
+      {/* Structural Gate Warnings */}
+      {(overriddenCount > 0 && !allApproved && !isLocked) && (
+         <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8 flex items-start gap-4">
+            <AlertCircle className="size-6 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+               <p className="text-[14px] font-bold text-amber-800">Non-Standard Node Execution Detected</p>
+               <p className="text-[13px] text-amber-700 font-medium">There are {overriddenCount} nodes mapped with active database bypass targets (overrides/exclusions). Authorizers must explicitly accept liability for mutated variables before finalizing signatures.</p>
             </div>
-          ))}
-        </div>
-      </div>
+         </div>
+      )}
 
-      {/* Approvers List */}
-      <div className="bg-white border border-[#e2e8f0] rounded-2xl p-6 shadow-sm">
-        <h2 className="font-bold text-[#0f172b] text-[16px] mb-5">Approval Chain</h2>
-        <div className="space-y-3">
-          {approvalWorkflow.map((approver, i) => (
-            <div key={i} className="relative">
-              <ApproverCard approver={approver} />
-              {i < approvalWorkflow.length - 1 && (
-                <div className="absolute left-[30px] bottom-0 translate-y-full h-3 w-0.5 bg-[#e2e8f0]" />
-              )}
+      {/* Global Hierarchy Visual Flow */}
+      <div className="bg-white border border-[#e2e8f0] rounded-2xl shadow-sm overflow-hidden mb-8">
+         <div className="bg-[#f8fafc] px-6 py-4 border-b border-[#e2e8f0] flex justify-between items-center">
+            <h2 className="text-[16px] font-bold text-[#0f172b]">Global Authorization Network Chain</h2>
+            <div className="flex gap-2">
+               {!isLocked && targetRole === "executive" && (
+                 <>
+                  <button onClick={bulkReject} className="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-[12px] font-bold hover:bg-red-100 transition-colors shadow-sm">Global Halting String</button>
+                  <button onClick={()=>setShowOverrideWarning(true)} className="bg-[#0f172b] text-white px-3 py-1.5 rounded-lg text-[12px] font-bold shadow-sm transition-transform active:scale-95">Executive Force Signature</button>
+                 </>
+               )}
             </div>
-          ))}
-        </div>
-
-        <div className="border-t border-[#e2e8f0] pt-5 mt-5 flex items-center justify-between">
-          <p className="text-[14px] text-[#62748e]">
-            After all approvals, payroll will be automatically queued for disbursement
-          </p>
-          <Link href="/payroll-run/disbursement">
-            <button className="flex items-center gap-2 text-[#10b981] font-bold text-[14px] hover:opacity-80">
-              View Disbursement <ChevronRight className="size-4" strokeWidth={2.5} />
-            </button>
-          </Link>
-        </div>
+         </div>
+         
+         <div className="p-8">
+            <div className="flex items-center justify-between relative">
+               {/* Connecting Line */}
+               <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#e2e8f0] -translate-y-1/2 z-0" />
+               
+               {approvers.map((approver, idx) => {
+                  const Icon = approver.status === "approved" ? CheckCircle : approver.status === "rejected" ? AlertCircle : Clock;
+                  
+                  return (
+                     <div key={approver.id} className="relative z-10 flex flex-col items-center gap-3">
+                        <div className={`size-14 rounded-full flex items-center justify-center border-[3px] shadow-sm transition-all ${
+                           approver.status === "approved" ? "bg-emerald-50 border-[#10b981] text-[#10b981]" :
+                           approver.status === "rejected" ? "bg-red-50 border-red-500 text-red-500" :
+                           "bg-white border-[#cbd5e1] text-[#94a3b8]"
+                        }`}>
+                           <Icon className="size-6" strokeWidth={2.5}/>
+                        </div>
+                        <div className="text-center bg-white px-3 py-1.5 rounded-lg border border-[#e2e8f0] shadow-sm">
+                           <p className="font-bold text-[13px] text-[#0f172b]">{approver.name}</p>
+                           <p className="text-[11px] text-[#64748b] font-medium uppercase tracking-wider">{approver.role}</p>
+                           {approver.timestamp && <p className="text-[10px] text-[#94a3b8] font-mono mt-1">{approver.timestamp}</p>}
+                        </div>
+                        {!isLocked && (
+                           <div className="flex items-center gap-1 mt-1">
+                              <button onClick={() => approveStep(approver.id, "approved")} className="text-[10px] font-bold bg-[#d1fae5] text-[#065f46] px-2 py-0.5 rounded hover:bg-[#a7f3d0] transition-colors uppercase">Sign</button>
+                              <button onClick={() => approveStep(approver.id, "rejected")} className="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded hover:bg-red-200 transition-colors uppercase">Reject</button>
+                           </div>
+                        )}
+                     </div>
+                  );
+               })}
+            </div>
+         </div>
+         
+         <div className="bg-[#f8fafc] px-6 py-4 border-t border-[#e2e8f0] flex items-center justify-between">
+            <span className="text-[13px] font-medium text-[#64748b]"><span className="font-bold">Protocol Bound:</span> Sequencing mathematically halts logic checks natively until signatures match globally.</span>
+            <div className="flex items-center gap-3">
+               {allApproved && !isLocked && !governance.passed && (
+                  <span className="text-[12px] font-bold text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-200">Governance Gate Open</span>
+               )}
+               <button 
+                  disabled={!allApproved || isLocked || !governance.passed}
+                  onClick={proceedToDisbursement}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-[14px] transition-all shadow-sm ${
+                    isLocked ? "bg-slate-100 text-slate-400 border border-slate-200" :
+                    allApproved && governance.passed ? "bg-[#3b82f6] text-white hover:bg-[#2563eb] shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95" : 
+                    "bg-[#f1f5f9] text-[#94a3b8]"
+                  }`}
+               >
+                 {isLocked ? "Sequence Secured" : "Initiate Disbursement Engine"} {(!isLocked && allApproved && governance.passed) && <ChevronRight className="size-4" />}
+               </button>
+            </div>
+         </div>
       </div>
+
+      {showOverrideWarning && (
+         <div className="fixed inset-0 bg-[#0f172b]/60 z-[99] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+               <div className="size-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                  <Shield className="size-6 text-red-600" />
+               </div>
+               <h3 className="text-[18px] font-bold text-[#0f172b] mb-2">Executive Macro Override Signature</h3>
+               <p className="text-[14px] text-[#64748b] mb-6 leading-relaxed">You are natively bypassing cryptographic sequence logic globally. This will instantly force approvals for all {approvers.length} nodes regardless of localized verification endpoints passively returning errors.</p>
+               <div className="flex justify-end gap-3">
+                  <button onClick={()=>setShowOverrideWarning(false)} className="px-4 py-2 rounded-lg font-bold text-[13px] text-[#64748b] hover:bg-[#f1f5f9] transition-colors">Cancel Array Bypass</button>
+                  <button onClick={()=>{bulkApprove(); setShowOverrideWarning(false);}} className="bg-red-600 hover:bg-red-700 transition-colors text-white px-5 py-2 rounded-lg font-bold text-[13px] shadow-md flex items-center gap-2">Execute Override Action</button>
+               </div>
+            </div>
+         </div>
+      )}
+
+      {/* Breadcrumb Navigation Return */}
+      <Link href="/payroll-run">
+        <button className="text-[#64748b] font-bold text-[13px] hover:text-[#0f172b] transition-colors flex items-center gap-1">
+           <ChevronRight className="rotate-180 size-4" /> Return to Simulation Array Control
+        </button>
+      </Link>
     </div>
   );
 }
