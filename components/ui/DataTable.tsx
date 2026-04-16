@@ -6,13 +6,13 @@ interface Column<T> {
   render?: (value: unknown, row: T) => React.ReactNode;
 }
 
-interface DataTableProps<T extends Record<string, unknown>> {
+interface DataTableProps<T extends object> {
   columns: Column<T>[];
   data: T[];
   footer?: React.ReactNode;
 }
 
-export default function DataTable<T extends Record<string, unknown>>({
+export default function DataTable<T extends object>({
   columns,
   data,
   footer,

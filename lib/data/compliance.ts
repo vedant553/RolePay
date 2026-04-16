@@ -1,183 +1,432 @@
-export interface ComplianceFiling {
-  id: string;
-  name: string;
-  type: "EPF" | "ESIC" | "TDS" | "Professional Tax" | "Labour Welfare Fund" | "GST" | "PAYE" | "Social Security";
+export type PayrollComplianceStatus = "Draft" | "Approved" | "Locked";
+export type ComplianceSeverity = "Low" | "Medium" | "High";
+export type ComplianceReportType = "Tax" | "PF" | "CNPS" | "Statutory";
+export type ComplianceReportStatus = "Generated" | "Pending";
+export type ComplianceModule = "Payroll" | "Employee";
+export type ComplianceUserRole = "HR" | "Finance" | "System";
+export type ComplianceRuleType = "Tax" | "Contribution" | "Deduction";
+export type ComplianceCalculationType = "Percentage" | "Fixed Amount";
+export type ComplianceRuleScope =
+  | "All Employees"
+  | "Specific Department"
+  | "Specific Role";
+export type ComplianceRuleStatus = "Active" | "Inactive";
+export type ComplianceRuleSource = "Default" | "Custom";
+
+export interface CountryComplianceRecord {
   country: string;
-  dueDate: string;
-  daysLeft: number;
-  status: "Filed" | "Pending" | "Overdue" | "Automated";
-  amount: string;
-  entity: string;
-  priority: "high" | "medium" | "low";
+  employeesCovered: number;
+  currencyCode: string;
+  payrollStatus: PayrollComplianceStatus;
+  lockedAt?: string;
 }
 
 export interface ComplianceRule {
   id: string;
+  country: string;
   name: string;
-  trigger: string;
+  ruleType: ComplianceRuleType;
+  calculationType: ComplianceCalculationType;
+  value: number;
+  appliesTo: ComplianceRuleScope;
+  scopeValue?: string;
+  effectiveFrom: string;
+  status: ComplianceRuleStatus;
+  source: ComplianceRuleSource;
+}
+
+export interface ComplianceReport {
+  id: string;
+  name: string;
+  type: ComplianceReportType;
+  month: string;
+  year: string;
+  country: string;
+  department: string;
+  status: ComplianceReportStatus;
+}
+
+export interface ComplianceAuditLog {
+  id: string;
+  country: string;
   action: string;
-  jurisdictions: string[];
-  status: "active" | "draft" | "paused";
-  lastTriggered?: string;
+  module: ComplianceModule;
+  userRole: ComplianceUserRole;
+  timestamp: string;
+  beforeValue: string;
+  afterValue: string;
+  reason: string;
 }
 
-export interface ComplianceMetric {
-  label: string;
-  value: string;
-  trend?: string;
-  trendDirection?: "up" | "down";
-  icon: string;
+export interface ComplianceAlert {
+  id: string;
+  country: string;
+  severity: ComplianceSeverity;
+  title: "Missing tax data" | "High deductions" | "Country mismatch";
+  description: string;
+  timestamp: string;
+  reviewed: boolean;
 }
 
-export const complianceFilings: ComplianceFiling[] = [
+export const complianceCountries: CountryComplianceRecord[] = [
   {
-    id: "CF-001",
-    name: "EPF Monthly Return",
-    type: "EPF",
     country: "India",
-    dueDate: "April 15, 2026",
-    daysLeft: 3,
-    status: "Pending",
-    amount: "₹1,24,800",
-    entity: "SAASA India Pvt Ltd",
-    priority: "high",
+    employeesCovered: 248,
+    currencyCode: "INR",
+    payrollStatus: "Approved",
   },
   {
-    id: "CF-002",
-    name: "ESIC Contribution",
-    type: "ESIC",
-    country: "India",
-    dueDate: "April 15, 2026",
-    daysLeft: 3,
-    status: "Automated",
-    amount: "₹32,400",
-    entity: "SAASA India Pvt Ltd",
-    priority: "high",
+    country: "South Africa",
+    employeesCovered: 96,
+    currencyCode: "ZAR",
+    payrollStatus: "Draft",
   },
   {
-    id: "CF-003",
-    name: "TDS Q4 Return",
-    type: "TDS",
-    country: "India",
-    dueDate: "May 31, 2026",
-    daysLeft: 47,
-    status: "Filed",
-    amount: "₹2,84,600",
-    entity: "SAASA India Pvt Ltd",
-    priority: "medium",
+    country: "UAE",
+    employeesCovered: 64,
+    currencyCode: "AED",
+    payrollStatus: "Locked",
+    lockedAt: "Apr 15, 2026, 10:30 AM",
   },
   {
-    id: "CF-004",
-    name: "Professional Tax",
-    type: "Professional Tax",
-    country: "India",
-    dueDate: "April 30, 2026",
-    daysLeft: 18,
-    status: "Automated",
-    amount: "₹18,750",
-    entity: "SAASA India Pvt Ltd",
-    priority: "low",
-  },
-  {
-    id: "CF-005",
-    name: "Labour Welfare Fund",
-    type: "Labour Welfare Fund",
-    country: "India",
-    dueDate: "June 15, 2026",
-    daysLeft: 62,
-    status: "Filed",
-    amount: "₹4,200",
-    entity: "SAASA India Pvt Ltd",
-    priority: "low",
-  },
-  {
-    id: "CF-006",
-    name: "PAYE Monthly",
-    type: "PAYE",
-    country: "UK",
-    dueDate: "April 19, 2026",
-    daysLeft: 7,
-    status: "Pending",
-    amount: "£28,400",
-    entity: "SAASA UK Ltd",
-    priority: "high",
-  },
-  {
-    id: "CF-007",
-    name: "Federal Payroll Tax",
-    type: "Social Security",
-    country: "USA",
-    dueDate: "April 30, 2026",
-    daysLeft: 18,
-    status: "Automated",
-    amount: "$31,200",
-    entity: "SAASA Inc.",
-    priority: "medium",
-  },
-  {
-    id: "CF-008",
-    name: "Lohnsteuer (Wage Tax)",
-    type: "TDS",
-    country: "Germany",
-    dueDate: "April 10, 2026",
-    daysLeft: -2,
-    status: "Overdue",
-    amount: "€22,400",
-    entity: "SAASA GmbH",
-    priority: "high",
+    country: "Cameroon",
+    employeesCovered: 52,
+    currencyCode: "XAF",
+    payrollStatus: "Draft",
   },
 ];
 
 export const complianceRules: ComplianceRule[] = [
   {
-    id: "CR-001",
-    name: "EPF Auto-Filing",
-    trigger: "Payroll cycle completion",
-    action: "Submit EPF return to EPFO portal",
-    jurisdictions: ["India"],
-    status: "active",
-    lastTriggered: "Mar 15, 2026",
+    id: "RULE-IN-001",
+    country: "India",
+    name: "PF",
+    ruleType: "Contribution",
+    calculationType: "Percentage",
+    value: 12,
+    appliesTo: "All Employees",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
   },
   {
-    id: "CR-002",
-    name: "TDS Deduction Rule",
-    trigger: "Salary above ₹5L/year",
-    action: "Auto-deduct TDS per Income Tax slab",
-    jurisdictions: ["India"],
-    status: "active",
-    lastTriggered: "Mar 31, 2026",
+    id: "RULE-IN-002",
+    country: "India",
+    name: "TDS",
+    ruleType: "Tax",
+    calculationType: "Percentage",
+    value: 10,
+    appliesTo: "Specific Department",
+    scopeValue: "Finance",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
   },
   {
-    id: "CR-003",
-    name: "Overtime Threshold Alert",
-    trigger: "Overtime > 15% of base",
-    action: "Flag for manager review + compliance alert",
-    jurisdictions: ["USA", "Germany", "UK"],
-    status: "active",
-    lastTriggered: "Mar 28, 2026",
+    id: "RULE-IN-003",
+    country: "India",
+    name: "Professional Tax",
+    ruleType: "Deduction",
+    calculationType: "Fixed Amount",
+    value: 200,
+    appliesTo: "All Employees",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
   },
   {
-    id: "CR-004",
-    name: "PAYE Calculation",
-    trigger: "UK payroll processing",
-    action: "Apply HMRC PAYE tax codes",
-    jurisdictions: ["UK"],
-    status: "active",
-    lastTriggered: "Mar 31, 2026",
+    id: "RULE-ZA-001",
+    country: "South Africa",
+    name: "PAYE",
+    ruleType: "Tax",
+    calculationType: "Percentage",
+    value: 18,
+    appliesTo: "All Employees",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
+  },
+  {
+    id: "RULE-ZA-002",
+    country: "South Africa",
+    name: "UIF",
+    ruleType: "Contribution",
+    calculationType: "Percentage",
+    value: 1,
+    appliesTo: "All Employees",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
+  },
+  {
+    id: "RULE-ZA-003",
+    country: "South Africa",
+    name: "SDL",
+    ruleType: "Contribution",
+    calculationType: "Percentage",
+    value: 1,
+    appliesTo: "Specific Department",
+    scopeValue: "Operations",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
+  },
+  {
+    id: "RULE-AE-001",
+    country: "UAE",
+    name: "VAT",
+    ruleType: "Tax",
+    calculationType: "Percentage",
+    value: 5,
+    appliesTo: "All Employees",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
+  },
+  {
+    id: "RULE-AE-002",
+    country: "UAE",
+    name: "EOSB",
+    ruleType: "Contribution",
+    calculationType: "Percentage",
+    value: 8.33,
+    appliesTo: "All Employees",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
+  },
+  {
+    id: "RULE-AE-003",
+    country: "UAE",
+    name: "WPS Adjustment",
+    ruleType: "Deduction",
+    calculationType: "Fixed Amount",
+    value: 1200,
+    appliesTo: "Specific Role",
+    scopeValue: "Contract Staff",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
+  },
+  {
+    id: "RULE-CM-001",
+    country: "Cameroon",
+    name: "CNPS",
+    ruleType: "Contribution",
+    calculationType: "Percentage",
+    value: 4.2,
+    appliesTo: "All Employees",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
+  },
+  {
+    id: "RULE-CM-002",
+    country: "Cameroon",
+    name: "PIT",
+    ruleType: "Tax",
+    calculationType: "Percentage",
+    value: 11,
+    appliesTo: "All Employees",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
+  },
+  {
+    id: "RULE-CM-003",
+    country: "Cameroon",
+    name: "VAT",
+    ruleType: "Tax",
+    calculationType: "Percentage",
+    value: 19.25,
+    appliesTo: "Specific Department",
+    scopeValue: "Finance",
+    effectiveFrom: "2026-04-01",
+    status: "Active",
+    source: "Default",
   },
 ];
 
-export const complianceMetrics: ComplianceMetric[] = [
-  { label: "Overall Compliance Score", value: "94%", trend: "+2%", trendDirection: "up", icon: "shield" },
-  { label: "Filings Due This Month", value: "8", trend: "-3", trendDirection: "down", icon: "file" },
-  { label: "Automated Filings", value: "6", trend: "75%", icon: "zap" },
-  { label: "Potential Penalties Avoided", value: "₹48,000", icon: "check" },
+export const complianceReports: ComplianceReport[] = [
+  {
+    id: "RPT-001",
+    name: "India PF Register",
+    type: "PF",
+    month: "April",
+    year: "2026",
+    country: "India",
+    department: "Operations",
+    status: "Generated",
+  },
+  {
+    id: "RPT-002",
+    name: "India Tax Summary",
+    type: "Tax",
+    month: "April",
+    year: "2026",
+    country: "India",
+    department: "Finance",
+    status: "Generated",
+  },
+  {
+    id: "RPT-003",
+    name: "South Africa PAYE Report",
+    type: "Tax",
+    month: "April",
+    year: "2026",
+    country: "South Africa",
+    department: "Finance",
+    status: "Pending",
+  },
+  {
+    id: "RPT-004",
+    name: "South Africa UIF Report",
+    type: "Statutory",
+    month: "March",
+    year: "2026",
+    country: "South Africa",
+    department: "HR",
+    status: "Generated",
+  },
+  {
+    id: "RPT-005",
+    name: "UAE VAT Pack",
+    type: "Statutory",
+    month: "April",
+    year: "2026",
+    country: "UAE",
+    department: "Finance",
+    status: "Generated",
+  },
+  {
+    id: "RPT-006",
+    name: "UAE WPS Output",
+    type: "Statutory",
+    month: "April",
+    year: "2026",
+    country: "UAE",
+    department: "Payroll",
+    status: "Generated",
+  },
+  {
+    id: "RPT-007",
+    name: "Cameroon CNPS Return",
+    type: "CNPS",
+    month: "April",
+    year: "2026",
+    country: "Cameroon",
+    department: "Payroll",
+    status: "Pending",
+  },
+  {
+    id: "RPT-008",
+    name: "Cameroon Tax Register",
+    type: "Tax",
+    month: "March",
+    year: "2026",
+    country: "Cameroon",
+    department: "Finance",
+    status: "Generated",
+  },
 ];
 
-export const jurisdictionRisk = [
-  { jurisdiction: "India", riskScore: 45, filingsPending: 2, automationRate: 85 },
-  { jurisdiction: "Germany", riskScore: 62, filingsPending: 1, automationRate: 70 },
-  { jurisdiction: "UK", riskScore: 28, filingsPending: 1, automationRate: 90 },
-  { jurisdiction: "USA", riskScore: 18, filingsPending: 0, automationRate: 95 },
-  { jurisdiction: "Singapore", riskScore: 8, filingsPending: 0, automationRate: 98 },
+export const complianceAuditLogs: ComplianceAuditLog[] = [
+  {
+    id: "AUD-001",
+    country: "India",
+    action: "Updated PF contribution code",
+    module: "Payroll",
+    userRole: "Finance",
+    timestamp: "Apr 15, 2026, 09:12 AM",
+    beforeValue: "PF code: PF-STD-01",
+    afterValue: "PF code: PF-STD-02",
+    reason: "Re-aligned the contribution code to the latest internal template.",
+  },
+  {
+    id: "AUD-002",
+    country: "India",
+    action: "Corrected employee tax category",
+    module: "Employee",
+    userRole: "HR",
+    timestamp: "Apr 15, 2026, 08:41 AM",
+    beforeValue: "Tax category: Missing",
+    afterValue: "Tax category: Resident",
+    reason: "Completed onboarding data after employee document review.",
+  },
+  {
+    id: "AUD-003",
+    country: "South Africa",
+    action: "Adjusted UIF coverage flag",
+    module: "Employee",
+    userRole: "HR",
+    timestamp: "Apr 14, 2026, 04:25 PM",
+    beforeValue: "UIF coverage: No",
+    afterValue: "UIF coverage: Yes",
+    reason: "Corrected employment classification for two transferred staff members.",
+  },
+  {
+    id: "AUD-004",
+    country: "UAE",
+    action: "Locked payroll compliance pack",
+    module: "Payroll",
+    userRole: "System",
+    timestamp: "Apr 15, 2026, 10:30 AM",
+    beforeValue: "Payroll status: Approved",
+    afterValue: "Payroll status: Locked",
+    reason: "Final compliance package was sealed after finance approval.",
+  },
+  {
+    id: "AUD-005",
+    country: "Cameroon",
+    action: "Updated CNPS employee category",
+    module: "Employee",
+    userRole: "Finance",
+    timestamp: "Apr 15, 2026, 11:08 AM",
+    beforeValue: "CNPS category: Temporary",
+    afterValue: "CNPS category: Permanent",
+    reason: "Corrected statutory classification before report generation.",
+  },
+];
+
+export const complianceAlerts: ComplianceAlert[] = [
+  {
+    id: "ALT-001",
+    country: "India",
+    severity: "High",
+    title: "Missing tax data",
+    description:
+      "Two employee records are missing tax residency details for the current month.",
+    timestamp: "Apr 15, 2026, 11:20 AM",
+    reviewed: false,
+  },
+  {
+    id: "ALT-002",
+    country: "India",
+    severity: "Medium",
+    title: "High deductions",
+    description:
+      "One payroll batch crossed the internal deduction threshold and needs review.",
+    timestamp: "Apr 15, 2026, 09:40 AM",
+    reviewed: false,
+  },
+  {
+    id: "ALT-003",
+    country: "Cameroon",
+    severity: "High",
+    title: "Country mismatch",
+    description:
+      "One employee is assigned to Cameroon payroll but has a UAE work location on file.",
+    timestamp: "Apr 15, 2026, 10:55 AM",
+    reviewed: false,
+  },
+  {
+    id: "ALT-004",
+    country: "Cameroon",
+    severity: "Medium",
+    title: "Missing tax data",
+    description:
+      "CNPS contribution category is incomplete for one newly added employee.",
+    timestamp: "Apr 14, 2026, 05:15 PM",
+    reviewed: true,
+  },
 ];

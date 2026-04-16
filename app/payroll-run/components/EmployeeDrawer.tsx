@@ -221,7 +221,7 @@ export default function EmployeeDrawer() {
                           <input type="number" value={baseOverride} onChange={(e)=>setBaseOverride(e.target.value)} 
                             className="flex-1 border border-[#e2e8f0] rounded-lg px-3 py-2 text-[14px] font-mono focus:outline-none focus:border-[#3b82f6] shadow-inner" 
                           />
-                          <button onClick={handleSaveOverride} disabled={!showOverrideWarning} className="bg-[#0f172b] disabled:opacity-50 text-white px-4 py-2 font-bold text-[13px] rounded-lg shadow-sm transition-colors">
+                          <button onClick={handleSaveOverride} disabled={!showOverrideImpact} className="bg-[#0f172b] disabled:opacity-50 text-white px-4 py-2 font-bold text-[13px] rounded-lg shadow-sm transition-colors">
                              Map
                           </button>
                        </div>

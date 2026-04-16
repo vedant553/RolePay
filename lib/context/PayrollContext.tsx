@@ -100,6 +100,7 @@ interface PayrollContextType {
   approvers: Approver[];
   transactions: Transaction[];
   auditLogs: AuditLogItem[];
+  resolvedEntities: string[];
   
   metrics: PayrollMetrics;
   entities: EntitySummary[];
@@ -422,7 +423,7 @@ export function PayrollProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <PayrollContext.Provider value={{
-      status, currentStep, isProcessing, rawEmployees, employees, approvers, transactions, auditLogs,
+      status, currentStep, isProcessing, rawEmployees, employees, approvers, transactions, auditLogs, resolvedEntities,
       metrics, entities, activeEmployeeId, setActiveEmployeeId,
       globalBudget, setGlobalBudget, scenarios, activeScenarioId, setActiveScenarioId, createScenario, computeScenarioMetrics,
       targetRole, setTargetRole, checkGovernanceRules,

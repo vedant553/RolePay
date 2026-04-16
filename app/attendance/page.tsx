@@ -1,292 +1,331 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Check, Clock, AlertCircle, Zap, ExternalLink, Activity } from "lucide-react";
-import { SourceLogModal } from "@/components/attendance/AttendanceModals";
-import { AnomalyDrawer } from "@/components/attendance/AttendanceDrawers";
+import { useState, useMemo, useEffect } from "react";
+import { Upload, RefreshCw, Search, Calendar as CalendarIcon, MapPin, CheckCircle, AlertTriangle, Clock, X, Plus, Edit3, Filter } from "lucide-react";
+import { employeeStats } from "@/lib/data/employees"; // Just for total employees
 
-function PipelineStep({ number, title, status }: { number: number; title: string; status: "completed" | "inProgress" | "pending" }) {
-  return (
-    <div className="flex flex-col items-center gap-2 min-w-[80px]">
-      <div className={`transition-colors duration-500 rounded-full size-10 flex items-center justify-center font-bold text-[14px] relative ${
-        status === "completed" ? "bg-[#10b981]" : status === "inProgress" ? "bg-[#3b82f6]" : "bg-[#e2e8f0]"
-      } ${status !== "pending" ? "text-white" : "text-[#90a1b9]"}`}>
-        {status === "inProgress" && <div className="absolute inset-0 rounded-full bg-[#3b82f6] animate-ping opacity-30" />}
-        <span className="relative z-10 transition-all duration-300">
-          {status === "completed" ? <Check className="size-4" strokeWidth={2.5} /> : number}
-        </span>
-      </div>
-      <p className="text-[#62748e] text-[10px] text-center leading-tight transition-colors">{title}</p>
-    </div>
-  );
-}
-
-function SourceStatus({ name, status, onClick }: { name: string; status: "connected" | "delayed" | "error", onClick?: () => void }) {
-  const config = {
-    connected: { color: "#10b981", bg: "#ecfdf5", text: "Connected" },
-    delayed: { color: "#f59e0b", bg: "#fffbeb", text: "Delayed" },
-    error: { color: "#dc2626", bg: "#fef2f2", text: "Error" },
-  }[status];
-  return (
-    <div onClick={onClick} className={`flex items-center justify-between p-2 -mx-2 rounded-lg transition-colors ${onClick ? 'cursor-pointer hover:bg-[#f1f5f9]' : ''}`}>
-      <div className="flex items-center gap-2">
-        <div className="rounded-full size-2" style={{ backgroundColor: config.color }} />
-        <p className="text-[#0f172b] text-[12px] font-medium">{name}</p>
-      </div>
-      <div className="rounded px-2 py-0.5" style={{ backgroundColor: config.bg, color: config.color }}>
-        <p className="font-bold text-[10px] uppercase tracking-wider">{config.text}</p>
-      </div>
-    </div>
-  );
-}
-
-function AnomalyRow({ anomaly, onReview }: { anomaly: any; onReview: () => void }) {
-  const riskConfig = {
-    High: { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
-    Medium: { bg: "#fffbeb", color: "#f59e0b", border: "#fde68a" },
-    Low: { bg: "#ecfdf5", color: "#10b981", border: "#a7f3d0" },
-  }[anomaly.risk as "High"|"Medium"|"Low"];
-  const isResolved = anomaly.resolvedStatus !== "Action Required";
-  
-  return (
-    <div className="group flex items-center justify-between p-4 bg-white hover:bg-[#f8fafc] transition-colors rounded-lg border border-[#e2e8f0]">
-      <div className="flex items-center gap-4 flex-1">
-        <div className="rounded px-2.5 py-1 border text-[10px] font-bold uppercase tracking-[0.5px]" style={{ backgroundColor: riskConfig.bg, color: riskConfig.color, borderColor: riskConfig.border }}>
-          {anomaly.risk}
-        </div>
-        <div className="flex-1">
-          <p className="font-bold text-[#0f172b] text-[12px] mb-0.5">{anomaly.employee}</p>
-          <div className="flex gap-2 items-center"><p className="text-[#62748e] text-[11px] truncate max-w-[280px]">{anomaly.issue}</p><span className="text-[10px] text-[#94a3b8]">— {anomaly.region}</span></div>
-        </div>
-        <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${anomaly.resolvedStatus === "Auto-Resolved" ? "bg-[#d1fae5] text-[#065f46]" : anomaly.resolvedStatus === "Rejected" ? "bg-red-100 text-red-700" : "bg-[#fef3c7] text-[#92400e]"}`}>
-          {anomaly.resolvedStatus}
-        </span>
-      </div>
-      <button onClick={onReview} className="ml-4 bg-white group-hover:bg-[#f8fafc] group-hover:border-[#cbd5e1] border shadow-sm border-[#e2e8f0] rounded-md px-4 py-1.5 text-[#0f172b] text-[11px] font-bold transition-all focus:ring-2 focus:ring-[#3b82f6] outline-none active:scale-95">
-        Review Logs
-      </button>
-    </div>
-  );
-}
-
-const mockAnomaliesInitial = [
-  { id: 1, region: "US-West", employee: "Sarah Chen", issue: "Consecutive overtime exceeding 20hrs/week limits", risk: "High", resolvedStatus: "Action Required" },
-  { id: 2, region: "APAC", employee: "Marcus Johnson", issue: "Clock-in pattern deviation detected natively", risk: "Medium", resolvedStatus: "Auto-Resolved" },
-  { id: 3, region: "EU-Region", employee: "Elena Rodriguez", issue: "Missing timesheet bounds for exactly 2 days", risk: "High", resolvedStatus: "Action Required" },
-  { id: 4, region: "Global View", employee: "David Park", issue: "Unusual leave overlap logic mapped with holiday vectors", risk: "Low", resolvedStatus: "Auto-Resolved" },
-  { id: 5, region: "US-West", employee: "Lisa Anderson", issue: "Hard Overtime logic flagged without prior approvals", risk: "Medium", resolvedStatus: "Action Required" },
-  { id: 6, region: "EU-Region", employee: "Stefan Muller", issue: "Geolocation anomaly - checking in from blocked IP", risk: "High", resolvedStatus: "Action Required" },
+// --- MOCK DATA ---
+const MOCK_ATTENDANCE_LOG = [
+  { id: "LOG-1", employee: "Sarah Johnson", avatar: "SJ", date: "2026-04-16", checkIn: "08:50 AM", checkOut: "06:10 PM", status: "Present", source: "Biometric" },
+  { id: "LOG-2", employee: "Marcus Chen", avatar: "MC", date: "2026-04-16", checkIn: "09:05 AM", checkOut: "06:00 PM", status: "Present", source: "GPS" },
+  { id: "LOG-3", employee: "Elena Rodriguez", avatar: "ER", date: "2026-04-16", checkIn: "—", checkOut: "—", status: "Absent", source: "—" },
+  { id: "LOG-4", employee: "James Mitchell", avatar: "JM", date: "2026-04-16", checkIn: "09:30 AM", checkOut: "06:15 PM", status: "Present", source: "Biometric" },
+  { id: "LOG-5", employee: "Priya Sharma", avatar: "PS", date: "2026-04-16", checkIn: "—", checkOut: "—", status: "Leave", source: "—" },
+  { id: "LOG-6", employee: "Thomas Weber", avatar: "TW", date: "2026-04-15", checkIn: "08:45 AM", checkOut: "08:30 PM", status: "Present", source: "Biometric" },
 ];
 
+const MOCK_SUMMARY = [
+  { id: "EMP-2401", employee: "Sarah Johnson", avatar: "SJ", totalDays: 22, present: 22, absent: 0, lateMarks: 0, overtime: "4 hrs", payrollImpact: "Standard" },
+  { id: "EMP-2402", employee: "Marcus Chen", avatar: "MC", totalDays: 22, present: 21, absent: 1, lateMarks: 2, overtime: "0 hrs", payrollImpact: "-1 Day Base" },
+  { id: "EMP-2403", employee: "Elena Rodriguez", avatar: "ER", totalDays: 22, present: 19, absent: 3, lateMarks: 0, overtime: "0 hrs", payrollImpact: "-3 Days Base" },
+  { id: "EMP-2404", employee: "James Mitchell", avatar: "JM", totalDays: 22, present: 22, absent: 0, lateMarks: 1, overtime: "12 hrs", payrollImpact: "+12 Hrs OT" },
+  { id: "EMP-2405", employee: "Priya Sharma", avatar: "PS", totalDays: 22, present: 20, absent: 0, lateMarks: 0, overtime: "0 hrs", payrollImpact: "Leave Covered" },
+];
+
+const MOCK_HOLIDAYS = [
+  { id: "HOL-1", date: "2026-01-01", name: "New Year's Day", type: "National", location: "Global" },
+  { id: "HOL-2", date: "2026-05-01", name: "Labor Day", type: "National", location: "Global" },
+  { id: "HOL-3", date: "2026-07-04", name: "Independence Day", type: "Regional", location: "USA" },
+  { id: "HOL-4", date: "2026-10-31", name: "Diwali", type: "Regional", location: "India" },
+  { id: "HOL-5", date: "2026-12-25", name: "Christmas", type: "National", location: "Global" },
+];
+
+// --- TOAST COMPONENT ---
+function Toast({ toast }: { toast: { message: string, type: string } | null }) {
+  if (!toast) return null;
+  return (
+    <div className={`fixed bottom-4 right-4 z-[60] px-4 py-3 rounded-lg shadow-xl font-medium text-white transition-all transform ${
+      toast.type === "success" ? "bg-[#10b981]" : toast.type === "error" ? "bg-red-500" : "bg-amber-500"
+    }`}>
+      {toast.message}
+    </div>
+  );
+}
+
 export default function AttendancePage() {
-  const [activeRegion, setActiveRegion] = useState("Global View");
-  const [autoSync, setAutoSync] = useState(true);
-  
-  // Pipeline Engine Simulation
-  const [pipelinePhase, setPipelinePhase] = useState(2); // 0=Ingest, 1=Pattern, 2=Policy, 3=Payroll, 4=Done
-  const [lastSyncText, setLastSyncText] = useState("2 minutes ago");
-  
-  useEffect(() => {
-     if (!autoSync) return;
-     const interval = setInterval(() => {
-        setPipelinePhase(p => {
-           if(p >= 4) { setLastSyncText("Just now"); return 0; }
-           return p + 1; 
-        });
-     }, 4000); // 4 seconds per phase logic
-     return () => clearInterval(interval);
-  }, [autoSync]);
+  const [activeTab, setActiveTab] = useState("log");
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{message: string, type: string} | null>(null);
 
-  // Modals & States
-  const [anomalies, setAnomalies] = useState(mockAnomaliesInitial);
-  const [targetLogSource, setTargetLogSource] = useState<string | null>(null);
-  const [reviewAnomaly, setReviewAnomaly] = useState<any>(null);
-  const [kpiFilter, setKpiFilter] = useState<string | null>(null); // "Overtime", "Anomalies", etc.
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
 
-  // Dynamic Metrics mapped safely via useMemo against active actions
-  const filteredAnomalies = useMemo(() => {
-     return anomalies.filter(a => {
-        if(activeRegion !== "Global View" && a.region !== activeRegion && a.region !== "Global View") return false;
-        if(kpiFilter === "Anomalies" && a.resolvedStatus !== "Action Required") return false;
-        return true;
-     });
-  }, [anomalies, activeRegion, kpiFilter]);
-
-  const stats = useMemo(() => {
-     const baseEmp = activeRegion === "Global View" ? 1248 : activeRegion === "US-West" ? 450 : activeRegion === "EU-Region" ? 520 : 278;
-     const pending = filteredAnomalies.filter(x=>x.resolvedStatus==="Action Required").length;
-     const costBase = 142350 - (anomalies.filter(x=>x.resolvedStatus==="Rejected").length * 4500); // Reduce cost dynamic if rejected
-     
-     return {
-        emp: baseEmp.toLocaleString("en-US"),
-        pending,
-        totalA: filteredAnomalies.length,
-        cost: `$${Math.max(costBase, 0).toLocaleString("en-US")}`
-     };
-  }, [activeRegion, filteredAnomalies, anomalies]);
-
-  const handleResolve = (id: number, decision: string) => {
-     setAnomalies(prev => prev.map(a => a.id === id ? { ...a, resolvedStatus: decision } : a));
+  const triggerToast = (message: string, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSync = () => {
+    triggerToast("Pulling automated records from Bio & GPS API...", "success");
+  };
+
+  const filteredLogs = useMemo(() => {
+     return MOCK_ATTENDANCE_LOG.filter(log => {
+        if (searchQuery && !log.employee.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        if (statusFilter && log.status !== statusFilter) return false;
+        if (dateFilter && log.date !== dateFilter) return false;
+        return true;
+     });
+  }, [searchQuery, statusFilter, dateFilter]);
+
   return (
-    <div className="pb-20">
-      <SourceLogModal open={!!targetLogSource} onClose={()=>setTargetLogSource(null)} sourceName={targetLogSource} onRetry={()=>setTargetLogSource(null)} />
-      <AnomalyDrawer open={!!reviewAnomaly} onClose={()=>setReviewAnomaly(null)} anomaly={reviewAnomaly} onResolve={handleResolve} />
-      
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
-        <h1 className="text-[24px] font-bold text-[#0f172b]">Attendance Intelligence – March 2026</h1>
-        <div className={`border rounded px-2 py-1 flex items-center gap-1.5 transition-colors ${autoSync ? 'bg-[#ecfdf5] border-[#10b981]' : 'bg-[#f1f5f9] border-[#cbd5e1]'}`}>
-          <div className={`rounded-full size-1.5 ${autoSync ? 'bg-[#10b981] animate-pulse' : 'bg-[#94a3b8]'}`} />
-          <p className={`font-bold text-[10px] uppercase tracking-[0.5px] transition-colors ${autoSync ? 'text-[#10b981]' : 'text-[#64748b]'}`}>{autoSync ? 'AI Engine Active' : 'System Dormant'}</p>
-        </div>
-      </div>
-      <p className="text-[#62748e] text-[14px] mb-5">AI-powered centralized attendance data ingestion & payroll impact control mapping.</p>
+    <div className="relative pb-10">
+      <Toast toast={toast} />
 
-      {/* Region Tabs */}
-      <div className="flex items-center gap-2 mb-8">
-        {["Global View", "US-West", "EU-Region", "APAC"].map((tab) => (
-          <button onClick={()=>setActiveRegion(tab)} key={tab} className={`px-4 py-2 rounded-full text-[12px] font-bold transition-all focus:outline-none active:scale-95 ${activeRegion === tab ? "bg-[#0f172b] border-[#0f172b] text-white shadow-md transform -translate-y-[1px]" : "bg-white border text-[#64748b] hover:border-[#10b981] hover:text-[#0f172b]"}`}>
-            {tab}
-          </button>
-        ))}
+      {/* Header Area */}
+      <div className="flex items-end justify-between mb-6">
+         <div>
+           <h1 className="text-[28px] font-bold text-[#0f172b]">Attendance Sync</h1>
+           <p className="text-[14px] text-[#64748b]">Manage attendance data for accurate payroll processing</p>
+         </div>
+         <div className="flex items-center gap-3">
+           <button onClick={() => triggerToast("Upload Modal Triggered")} className="bg-white border border-gray-300 text-gray-700 h-[38px] px-4 rounded-lg flex items-center gap-2 font-medium text-[13px] hover:bg-gray-50 transition-colors shadow-sm">
+             <Upload className="size-4" /> Upload Data (CSV)
+           </button>
+           <button onClick={handleSync} className="bg-[#10b981] text-white h-[38px] px-4 rounded-lg flex items-center gap-2 font-medium text-[13px] hover:bg-[#0ea370] transition-colors shadow-sm">
+             <RefreshCw className="size-4" /> Sync Attendance
+           </button>
+         </div>
       </div>
 
-      {/* KPI Summation Network - Interactive Data Filters */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
-          { title: "Total Entities Tracked", value: stats.emp, badge: "LIVE", badgeStyle: "bg-[#ecfdf5] text-[#10b981]", sub: "Active nodes", color: "#10b981", act: "All" },
-          { title: "Attendance Records", value: (activeRegion==="Global View"?28352:8421).toLocaleString("en-US"), badge: "Mar 1-31", badgeStyle: "bg-[#eff6ff] text-[#3b82f6]", sub: "Working Days", color: "#3b82f6", act: null },
-          { title: "AI Anomalies Handled", value: stats.totalA.toString(), badge: `${stats.pending} Pending Review`, badgeStyle: "bg-[#fffbeb] text-[#f59e0b]", sub: "Critical Flags", color: "#f59e0b", act: "Anomalies" },
-          { title: "Overtime Meta Limits", value: (activeRegion==="Global View"?2847:942).toLocaleString("en-US"), badge: "▲ 8.4%", badgeStyle: "bg-[#f3e8ff] text-[#8b5cf6]", sub: "vs Last Iteration", color: "#8b5cf6", act: null },
-        ].map((card, i) => (
-          <div key={i} onClick={card.act ? ()=>setKpiFilter(kpiFilter === card.act ? null : card.act) : undefined} className={`bg-white border rounded-2xl p-6 shadow-sm relative overflow-hidden transition-all ${card.act ? 'cursor-pointer hover:border-['+card.color+'] hover:ring-2 ring-['+card.color+']/20' : ''} ${kpiFilter === card.act ? 'ring-2 border-['+card.color+']' : 'border-[rgba(226,232,240,0.6)]'}`}>
-            <div className="absolute right-4 top-4 opacity-5 transition-transform duration-500 ease-out hover:scale-110">
-              <div className="size-24 rounded-full border-8" style={{ borderColor: card.color }} />
+      <div className="flex gap-6 mb-8">
+         <div className="flex-1">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-5 gap-3">
+               {[
+                 { label: "Total Target Days", value: "22", icon: CalendarIcon, color: "text-blue-600" },
+                 { label: "Present Days", value: "20.5", icon: CheckCircle, color: "text-[#10b981]" },
+                 { label: "Total Absences", value: "4", icon: AlertTriangle, color: "text-red-500" },
+                 { label: "Late Marks", value: "3", icon: Clock, color: "text-amber-500" },
+                 { label: "Overtime Hours", value: "16", icon: Clock, color: "text-purple-600" },
+               ].map((card, i) => (
+                 <div key={i} className="bg-white border border-[#e2e8f0] rounded-xl p-4 shadow-sm flex flex-col justify-center transition-all hover:border-gray-300">
+                   <div className="flex items-center justify-between mb-2">
+                     <span className="text-[12px] text-[#64748b] font-medium leading-tight">{card.label}</span>
+                     <card.icon className={`size-4 ${card.color}`} />
+                   </div>
+                   <p className="text-[22px] font-bold text-[#0f172b]">{card.value}</p>
+                 </div>
+               ))}
             </div>
-            <div className="size-9 rounded-xl flex items-center justify-center mb-4 transition-colors" style={{ backgroundColor: card.color }}>
-              <Zap className="size-4 text-white" strokeWidth={1.75} />
+         </div>
+
+         {/* Sync Status Panel */}
+         <div className="w-[300px] shrink-0 bg-[#0f172b] rounded-xl overflow-hidden shadow-sm flex flex-col">
+            <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+               <span className="text-[13px] font-bold text-white">Sync Status</span>
+               <div className="flex items-center gap-1">
+                  <span className="relative flex size-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75"></span><span className="relative inline-flex rounded-full size-2 bg-[#10b981]"></span></span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400">Live</span>
+               </div>
             </div>
-            <p className="text-[11px] font-bold text-[#62748e] uppercase tracking-[0.55px] mb-1">{card.title}</p>
-            <p className="text-[30px] font-bold text-[#0f172b] tracking-tight mb-2">{card.value}</p>
-            <div className="flex items-center gap-1.5">
-              <span className={`${card.badgeStyle} rounded px-1.5 py-0.5 text-[10px] font-bold`}>{card.badge}</span>
-              <span className="text-[10px] text-[#90a1b9] font-medium">{card.sub}</span>
+            <div className="p-4 space-y-4">
+               <div>
+                  <div className="flex justify-between text-[12px] mb-1"><span className="text-gray-400">Biometric Links</span><span className="text-[#10b981] font-bold">Connected (4)</span></div>
+               </div>
+               <div>
+                  <div className="flex justify-between text-[12px] mb-1"><span className="text-gray-400">GPS Trackers</span><span className="text-[#10b981] font-bold">Active</span></div>
+               </div>
+               <div className="pt-3 mt-1 border-t border-gray-800">
+                  <div className="flex justify-between text-[12px]"><span className="text-gray-400">Last Synced</span><span className="text-white font-medium">Today, 09:30 AM</span></div>
+               </div>
             </div>
-          </div>
-        ))}
+         </div>
       </div>
 
-      {/* Main Structural Layout Grid */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        
-        {/* ML Engine Status Node */}
-        <div className="bg-white border border-[rgba(226,232,240,0.6)] rounded-2xl p-6 shadow-sm flex flex-col">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h3 className="font-bold text-[#0f172b] text-[16px] mb-1">Algorithmic Processing Block</h3>
-              <p className="text-[#62748e] text-[12px]">Automated lifecycle event parsing & injection</p>
+      {/* Main Content Area */}
+      <div className="bg-white border border-[#e2e8f0] rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+         
+         {/* Tabs */}
+         <div className="flex items-center justify-between border-b border-gray-200 px-6 bg-gray-50/50">
+            <div className="flex gap-6">
+               {[
+                 { id: "log", label: "Daily Log" },
+                 { id: "summary", label: "Monthly Summary" },
+                 { id: "holidays", label: "Holiday Calendar" }
+               ].map((tab) => (
+                 <button 
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`py-4 text-[13px] font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id ? "border-[#10b981] text-[#10b981]" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`}
+                 >
+                    {tab.label}
+                 </button>
+               ))}
             </div>
-            <label className="flex items-center gap-2 cursor-pointer group">
-              <span className="text-[#64748b] text-[11px] font-bold uppercase tracking-wider group-hover:text-[#0f172b] transition-colors">Auto-Sync Pulse</span>
-              <div className="relative inline-block w-11 h-6">
-                <input className="sr-only peer" type="checkbox" checked={autoSync} onChange={(e)=>setAutoSync(e.target.checked)} />
-                <div className={`w-full h-full rounded-full transition-colors ${autoSync ? 'bg-[#10b981]' : 'bg-[#cbd5e1]'}`} />
-                <div className={`absolute left-[2px] top-[2px] bg-white size-5 rounded-full transition-transform shadow-sm ${autoSync ? 'translate-x-5' : 'translate-x-0'}`} />
+            
+            {activeTab === "log" && (
+              <div className="flex items-center gap-3">
+                 <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
+                    <input type="text" placeholder="Search employee..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-[180px] pl-8 pr-3 py-1.5 text-[12px] border border-gray-300 rounded-md focus:ring-1 focus:ring-[#10b981] outline-none" />
+                 </div>
+                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-[120px] px-2 py-1.5 text-[12px] text-gray-700 border border-gray-300 rounded-md focus:ring-1 focus:ring-[#10b981] outline-none">
+                    <option value="">All Statuses</option>
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Leave">Leave</option>
+                 </select>
+                 <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="w-[130px] px-2 py-1.5 text-[12px] text-gray-700 border border-gray-300 rounded-md focus:ring-1 focus:ring-[#10b981] outline-none" />
               </div>
-            </label>
-          </div>
-          
-          <div className="flex items-center justify-between mb-8 px-2 flex-1">
-            <PipelineStep number={1} title="Data Ingest" status={pipelinePhase>0?"completed":pipelinePhase===0?"inProgress":"pending"} />
-            <div className={`flex-1 h-0.5 mx-2 transition-colors duration-500 ${pipelinePhase>0?'bg-[#10b981]':'bg-[#e2e8f0]'}`} />
-            <PipelineStep number={2} title="Pattern Logic" status={pipelinePhase>1?"completed":pipelinePhase===1?"inProgress":"pending"} />
-            <div className={`flex-1 h-0.5 mx-2 transition-colors duration-500 ${pipelinePhase>1?'bg-[#10b981]':'bg-[#e2e8f0]'}`} />
-            <PipelineStep number={3} title="Validations" status={pipelinePhase>2?"completed":pipelinePhase===2?"inProgress":"pending"} />
-            <div className={`flex-1 h-0.5 mx-2 transition-colors duration-500 ${pipelinePhase>2?'bg-[#10b981]':'bg-[#e2e8f0]'}`} />
-            <PipelineStep number={4} title="Map Ledgers" status={pipelinePhase>3?"completed":pipelinePhase===3?"inProgress":"pending"} />
-          </div>
-          
-          <div className="border-t border-[#f1f5f9] pt-4">
-            <div className="flex items-center justify-between mb-4 bg-[#f8fafc] px-3 py-2 rounded-lg">
-              <p className="text-[#64748b] text-[11px] uppercase tracking-[0.55px] font-bold flex items-center gap-1.5"><Activity className="size-3.5" /> Latest Node Propagation</p>
-              <p className="text-[#0f172b] text-[12px] font-bold font-mono">{autoSync ? lastSyncText : "Halted by Admin"}</p>
-            </div>
-            <p className="text-[#94a3b8] text-[11px] uppercase tracking-[0.55px] font-bold mb-3 px-1">Network Socket Sources</p>
-            <div className="space-y-1">
-              <SourceStatus name="BambooHR Master" status={autoSync ? "connected" : "delayed"} />
-              <SourceStatus name="Workday Integrator" status="connected" />
-              <SourceStatus name="Azure AD Sync" status="delayed" />
-              <SourceStatus onClick={()=>setTargetLogSource('Custom SFTP')} name="Custom SFTP Drop" status="error" />
-            </div>
-          </div>
-        </div>
+            )}
 
-        {/* Dynamic Payroll Constraints */}
-        <div className="bg-white border border-[rgba(226,232,240,0.6)] rounded-2xl p-6 shadow-sm">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h3 className="font-bold text-[#0f172b] text-[16px] mb-1">Ledger Meta Impact (Live)</h3>
-              <p className="text-[#62748e] text-[12px]">Mathematical financial load calculations based on anomaly resolution states.</p>
-            </div>
-            <div className={`size-3 rounded-full ${autoSync?'bg-[#10b981] animate-pulse':'bg-[#f59e0b]'}`} />
-          </div>
-          <div className="space-y-6 mb-6">
-            {[
-              { label: "Estimated Overtime Logic Costing", value: stats.cost, change: "+8.4%", type: "increase" as const },
-              { label: "Calculated Leave Subtractions", value: "$28,450", change: "-2.1%", type: "decrease" as const },
-              { label: "Net Ledger Deviation Percentile", value: "+2.8%", change: "Within Meta Threshold", type: "neutral" as const },
-            ].map((metric) => (
-              <div key={metric.label}>
-                <p className="text-[#64748b] font-bold uppercase tracking-wider text-[10px] mb-1.5">{metric.label}</p>
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-[#0f172b] text-[24px] tracking-tight">{metric.value}</p>
-                  <p className={`font-bold text-[12px] px-2 py-0.5 rounded ${metric.type === "increase" ? "bg-red-50 text-red-600" : metric.type === "decrease" ? "bg-emerald-50 text-[#10b981]" : "bg-slate-50 text-[#62748e]"}`}>{metric.change}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-[#f1f5f9] pt-5">
-             <div className="bg-[#f8fafc] rounded-xl p-3 flex justify-between items-center border border-[#e2e8f0]">
-                <div className="text-[#0f172b] text-[12px] font-bold flex items-center gap-2"><div className="size-2 bg-emerald-500 rounded-full" /> System Meta Risk Factor</div>
-                <div className="flex gap-1.5">
-                  <div className="w-2 h-4 rounded-sm bg-[#10b981]" />
-                  <div className="w-2 h-4 rounded-sm bg-[#10b981]" />
-                  <div className="w-2 h-4 rounded-sm bg-[#e2e8f0]" />
-                  <div className="w-2 h-4 rounded-sm bg-[#e2e8f0]" />
-                  <div className="w-2 h-4 rounded-sm bg-[#e2e8f0]" />
-                </div>
-             </div>
-          </div>
-        </div>
-      </div>
+            {activeTab === "holidays" && (
+               <button onClick={() => triggerToast("Add Holiday Modal Triggered")} className="bg-gray-900 text-white h-[32px] px-3 rounded-md flex items-center gap-1.5 font-medium text-[12px] hover:bg-gray-800 transition-colors shadow-sm">
+                 <Plus className="size-3.5" /> Add Holiday
+               </button>
+            )}
+         </div>
 
-      {/* Logic Overrides List */}
-      <div className="bg-white border border-[rgba(226,232,240,0.6)] rounded-2xl p-6 shadow-sm">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h3 className="font-bold text-[#0f172b] text-[16px] mb-1">Algorithmic Irregularities Flagged</h3>
-            <p className="text-[#62748e] text-[12px]">
-              {stats.totalA} total nodes tracked • {anomalies.filter(x=>x.resolvedStatus==="Auto-Resolved").length} natively locked • {stats.pending} await manual override bounds.
-            </p>
-          </div>
-          <button onClick={()=>{setActiveRegion('Global View'); setKpiFilter(null);}} className="text-[#3b82f6] font-bold text-[12px] flex items-center gap-1 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
-            Reset Drill-down Frame <ExternalLink className="size-3" strokeWidth={2} />
-          </button>
-        </div>
-        
-        <div className="space-y-3">
-          {filteredAnomalies.length === 0 ? (
-             <div className="py-12 bg-[#f8fafc] border border-dashed border-[#cbd5e1] rounded-xl flex flex-col items-center justify-center text-center">
-                <AlertCircle className="size-10 text-[#94a3b8] mb-3" />
-                <p className="font-bold text-[#0f172b] text-[14px]">Zero active flags parsed within current bounds</p>
-                <p className="text-[12px] text-[#64748b]">Engine reports logic integrity maintained for {activeRegion}.</p>
-             </div>
-          ) : filteredAnomalies.map((anomaly) => (
-             <AnomalyRow key={anomaly.id} anomaly={anomaly} onReview={() => setReviewAnomaly(anomaly)} />
-          ))}
-        </div>
+         {/* TAB CONTENTS */}
+         
+         {/* TAB 1: LOG */}
+         {activeTab === "log" && (
+            <div className="flex-1 overflow-x-auto">
+               <table className="w-full text-left">
+                  <thead className="bg-[#f8fafc] border-b border-gray-200">
+                     <tr>
+                        {["Employee", "Date", "Check-in", "Check-out", "Status", "Source", "Action"].map(h => <th key={h} className="text-left py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wide">{h}</th>)}
+                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                     {filteredLogs.length > 0 ? filteredLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                           <td className="py-3 px-6">
+                              <div className="flex items-center gap-2">
+                                 <div className="size-7 rounded-full bg-gradient-to-br from-[#10b981] to-[#3b82f6] flex items-center justify-center shrink-0 shadow-sm"><span className="text-white font-bold text-[10px]">{log.avatar}</span></div>
+                                 <span className="font-medium text-[13px] text-gray-900">{log.employee}</span>
+                              </div>
+                           </td>
+                           <td className="py-3 px-6 text-[13px] text-gray-600">{log.date}</td>
+                           <td className="py-3 px-6 text-[13px] font-medium text-gray-900">{log.checkIn}</td>
+                           <td className="py-3 px-6 text-[13px] font-medium text-gray-900">{log.checkOut}</td>
+                           <td className="py-3 px-6">
+                              <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-bold ${
+                                 log.status === "Present" ? "bg-[#10b981]/10 text-[#10b981]" : log.status === "Absent" ? "bg-red-50 text-red-600" : "bg-amber-100 text-amber-700"
+                              }`}>{log.status}</span>
+                           </td>
+                           <td className="py-3 px-6">
+                              <span className="inline-flex px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-600 border border-gray-200">{log.source}</span>
+                           </td>
+                           <td className="py-3 px-6 text-left">
+                              <button onClick={() => triggerToast("Only authorized administrators can edit operational logs.", "warning")} className="text-gray-400 hover:text-gray-900 flex items-center gap-1.5 text-[12px] font-medium transition-colors">
+                                 <Edit3 className="size-3.5" /> Edit
+                              </button>
+                           </td>
+                        </tr>
+                     )) : (
+                        <tr>
+                           <td colSpan={7} className="text-center py-12 text-gray-500 text-[13px] font-medium">No logs found matching your filters.</td>
+                        </tr>
+                     )}
+                  </tbody>
+               </table>
+            </div>
+         )}
+
+         {/* TAB 2: SUMMARY */}
+         {activeTab === "summary" && (
+            <div className="flex-1 overflow-x-auto">
+               <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center gap-3">
+                  <span className="text-[12px] font-bold text-gray-500 uppercase tracking-wide">Showing Summary For:</span>
+                  <select className="bg-white border border-gray-300 rounded text-[12px] font-medium px-2 py-1 outline-none">
+                     <option>April 2026</option>
+                     <option>March 2026</option>
+                  </select>
+               </div>
+               <table className="w-full text-left">
+                  <thead className="bg-[#f8fafc] border-b border-gray-200">
+                     <tr>
+                        {["Employee", "Total Target Days", "Present", "Absent", "Late Marks", "Overtime", "Payroll Impact"].map(h => <th key={h} className="text-left py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wide">{h}</th>)}
+                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                     {MOCK_SUMMARY.map((row) => (
+                        <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+                           <td className="py-3 px-6">
+                              <div className="flex items-center gap-2">
+                                 <div className="size-7 rounded-full bg-gradient-to-br from-[#10b981] to-[#3b82f6] flex items-center justify-center shrink-0 shadow-sm"><span className="text-white font-bold text-[10px]">{row.avatar}</span></div>
+                                 <span className="font-medium text-[13px] text-gray-900">{row.employee}</span>
+                              </div>
+                           </td>
+                           <td className="py-3 px-6 text-[13px] text-gray-600">{row.totalDays}</td>
+                           <td className="py-3 px-6 text-[13px] font-bold text-[#10b981]">{row.present}</td>
+                           <td className="py-3 px-6 text-[13px] font-bold text-red-500">{row.absent}</td>
+                           <td className="py-3 px-6 text-[13px] font-medium text-amber-600">{row.lateMarks}</td>
+                           <td className="py-3 px-6 text-[13px] font-medium text-purple-600">{row.overtime}</td>
+                           <td className="py-3 px-6">
+                              <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-bold ${
+                                 row.payrollImpact === "Standard" ? "bg-gray-100 text-gray-600" : row.payrollImpact.includes("-") ? "bg-red-50 text-red-600 border border-red-100" : row.payrollImpact.includes("+") ? "bg-[#10b981]/10 text-[#10b981]" : "bg-blue-50 text-blue-600"
+                              }`}>{row.payrollImpact}</span>
+                           </td>
+                        </tr>
+                     ))}
+                  </tbody>
+               </table>
+            </div>
+         )}
+
+         {/* TAB 3: HOLIDAYS */}
+         {activeTab === "holidays" && (
+            <div className="flex-1 flex flex-col">
+               <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                     <span className="text-[12px] font-bold text-gray-500 uppercase tracking-wide">Region Select:</span>
+                     <select className="bg-white border border-gray-300 rounded text-[12px] font-medium px-2 py-1 outline-none focus:ring-1 focus:ring-[#10b981]">
+                        <option>Global Standard</option>
+                        <option>USA Branch</option>
+                        <option>India Branch</option>
+                        <option>Germany Branch</option>
+                     </select>
+                  </div>
+                  <div className="text-[11px] font-medium text-[#10b981] bg-[#10b981]/10 px-3 py-1 rounded-full flex items-center gap-1.5">
+                     <CheckCircle className="size-3" /> Holidays automatically evaluate as "Present - Paid" during Payroll Runs.
+                  </div>
+               </div>
+               
+               <div className="flex-1 overflow-y-auto">
+                  <table className="w-full text-left">
+                     <thead className="bg-[#f8fafc] border-b border-gray-200">
+                        <tr>
+                           {["Date", "Holiday Name", "Type", "Scope / Location", "Action"].map(h => <th key={h} className="text-left py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wide">{h}</th>)}
+                        </tr>
+                     </thead>
+                     <tbody className="divide-y divide-gray-100">
+                        {MOCK_HOLIDAYS.map((holiday) => (
+                           <tr key={holiday.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-6 text-[13px] font-bold text-gray-900">{new Date(holiday.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})}</td>
+                              <td className="py-4 px-6 text-[13px] font-medium text-gray-900">{holiday.name}</td>
+                              <td className="py-4 px-6">
+                                 <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-bold ${
+                                    holiday.type === "National" ? "bg-blue-50 text-blue-600 border border-blue-100" : "bg-purple-50 text-purple-600 border border-purple-100"
+                                 }`}>{holiday.type}</span>
+                              </td>
+                              <td className="py-4 px-6 text-[13px] font-medium text-gray-600 flex items-center gap-1"><MapPin className="size-3 text-gray-400" /> {holiday.location}</td>
+                              <td className="py-4 px-6 text-left">
+                                 <div className="flex gap-2">
+                                    <button onClick={() => triggerToast("Edit Holiday", "success")} className="text-gray-400 hover:text-gray-900 flex items-center gap-1.5 text-[12px] font-medium transition-colors">
+                                       <Edit3 className="size-3.5" /> Edit
+                                    </button>
+                                    <button onClick={() => triggerToast("Disabled: Cannot delete locked historical holiday map.", "error")} className="text-gray-400 hover:text-red-600 flex items-center gap-1.5 text-[12px] font-medium transition-colors ml-2">
+                                       <X className="size-3.5" /> Delete
+                                    </button>
+                                 </div>
+                              </td>
+                           </tr>
+                        ))}
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+         )}
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ const routeLabels: Record<string, string> = {
   "/payroll-run/reporting": "Reporting",
   "/compliance": "Compliance",
   "/compliance/create": "Create Rule",
+  "/reports-analytics": "Reports & Analytics",
   "/ai-audit": "AI & Audit",
   "/banking": "Banking & Accounting",
   "/settings": "Settings",
@@ -42,7 +43,7 @@ export default function Topbar() {
   const { parent, current } = getBreadcrumb(pathname);
 
   return (
-    <header className="fixed top-0 left-[250px] right-0 h-16 bg-white border-b border-[#e2e8f0] z-40 flex items-center justify-between px-8 gap-6">
+    <header className="fixed top-0 left-[264px] right-0 h-16 bg-white border-b border-[#e2e8f0] z-40 flex items-center justify-between px-8 gap-6">
       {/* Left */}
       <div className="flex items-center gap-6 shrink-0">
         {/* Global View Dropdown */}

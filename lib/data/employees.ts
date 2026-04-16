@@ -13,6 +13,9 @@ export interface Employee {
   status: "Active" | "On Leave" | "Inactive";
   department: string;
   email: string;
+  role: string;
+  bankStatus: "Valid" | "Invalid" | "Missing";
+  avatar: string;
 }
 
 export const employees: Employee[] = [
@@ -31,6 +34,9 @@ export const employees: Employee[] = [
     status: "Active",
     department: "Engineering",
     email: "sarah.johnson@saasa.io",
+    role: "VP Engineering",
+    bankStatus: "Valid",
+    avatar: "SJ",
   },
   {
     id: "EMP-2402",
@@ -47,6 +53,9 @@ export const employees: Employee[] = [
     status: "Active",
     department: "Finance",
     email: "marcus.chen@saasa.io",
+    role: "Financial Controller",
+    bankStatus: "Valid",
+    avatar: "MC",
   },
   {
     id: "EMP-2403",
@@ -63,6 +72,9 @@ export const employees: Employee[] = [
     status: "Active",
     department: "HR",
     email: "elena.rodriguez@saasa.io",
+    role: "HR Manager",
+    bankStatus: "Missing",
+    avatar: "ER",
   },
   {
     id: "EMP-2404",
@@ -79,6 +91,9 @@ export const employees: Employee[] = [
     status: "Active",
     department: "Legal",
     email: "james.mitchell@saasa.io",
+    role: "General Counsel",
+    bankStatus: "Valid",
+    avatar: "JM",
   },
   {
     id: "EMP-2405",
@@ -95,6 +110,9 @@ export const employees: Employee[] = [
     status: "Active",
     department: "Engineering",
     email: "priya.sharma@saasa.io",
+    role: "Senior Developer",
+    bankStatus: "Valid",
+    avatar: "PS",
   },
   {
     id: "EMP-2406",
@@ -111,6 +129,9 @@ export const employees: Employee[] = [
     status: "On Leave",
     department: "Operations",
     email: "thomas.weber@saasa.io",
+    role: "Operations Analyst",
+    bankStatus: "Missing",
+    avatar: "TW",
   },
   {
     id: "EMP-2407",
@@ -127,6 +148,9 @@ export const employees: Employee[] = [
     status: "Active",
     department: "Product",
     email: "yuki.tanaka@saasa.io",
+    role: "Product Lead",
+    bankStatus: "Valid",
+    avatar: "YT",
   },
   {
     id: "EMP-2408",
@@ -143,6 +167,9 @@ export const employees: Employee[] = [
     status: "Active",
     department: "Finance",
     email: "olivia.thompson@saasa.io",
+    role: "Finance Director",
+    bankStatus: "Missing",
+    avatar: "OT",
   },
 ];
 
@@ -153,4 +180,6 @@ export const employeeStats = {
   totalPayroll: "$565,240",
   avgRiskScore: 22,
   compliantCount: 231,
+  missingBankCount: 15,
+  complianceIssueCount: 8,
 };

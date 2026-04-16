@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { ChevronDown, Search, Download, X } from "lucide-react";
+import { Check, ChevronDown, Search, Download, X } from "lucide-react";
 
 export function FilterBar({ searchQuery, setSearchQuery, onExport, filters, setFilters }: any) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
