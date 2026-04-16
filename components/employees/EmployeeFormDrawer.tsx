@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { X, CheckCircle2, AlertCircle, UploadCloud } from "lucide-react";
+import { X, CheckCircle, AlertCircle, UploadCloud, Trash2 } from "lucide-react";
 
 export function EmployeeFormDrawer({ open, onClose, onSubmit, initialData }: { open: boolean, onClose: () => void, onSubmit: (data: any) => void, initialData?: any }) {
   const [formData, setFormData] = useState<any>({});
@@ -117,7 +117,7 @@ export function EmployeeFormDrawer({ open, onClose, onSubmit, initialData }: { o
           <section className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
             <h3 className="text-[14px] font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex justify-between items-center">
               <span>Bank Details</span>
-              {bankValidation === "valid" && <span className="flex items-center text-[#10b981] text-[11px] font-bold bg-[#10b981]/10 px-2 py-0.5 rounded"><CheckCircle2 className="size-3 mr-1" /> Validated</span>}
+              {bankValidation === "valid" && <span className="flex items-center text-[#10b981] text-[11px] font-bold bg-[#10b981]/10 px-2 py-0.5 rounded"><CheckCircle className="size-3 mr-1" /> Validated</span>}
               {bankValidation === "invalid" && <span className="flex items-center text-red-500 text-[11px] font-bold bg-red-50 px-2 py-0.5 rounded"><AlertCircle className="size-3 mr-1" /> Needs Correction</span>}
             </h3>
             
