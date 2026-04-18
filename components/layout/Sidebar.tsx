@@ -64,7 +64,7 @@ function NavItemComponent({ item, active }: { item: NavItem; active: boolean }) 
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 ${
+      className={`group relative flex items-center gap-3 rounded-xl px-3 py-1.5 transition-all duration-200 ${
         active
           ? "bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08),0_10px_24px_rgba(15,23,42,0.18)]"
           : "text-[#9aabc2] hover:bg-white/[0.05] hover:text-white"
@@ -115,11 +115,11 @@ function NavSectionBlock({
   isActive: (href: string) => boolean;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <p className="px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#607089]">
         {section.label}
       </p>
-      <div className="space-y-1.5">
+      <div className="space-y-0">
         {section.items.map((item) => (
           <NavItemComponent key={item.href} item={item} active={isActive(item.href)} />
         ))}
@@ -151,8 +151,8 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="space-y-6">
+      <nav className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="space-y-3">
           {navSections.map((section) => (
             <NavSectionBlock key={section.label} section={section} isActive={isActive} />
           ))}
